@@ -23,26 +23,42 @@ par('F',6).
 par('G',7).
 par('H',8).
 par('I',9).
-par('J',10).                            %%Pa
+par('J',10).                            %%Para comparar 113 (jogador1 ou peça1 com valor 13) parsing
 par('W', white).
 par('B', black).
 par('G', gray).
 
+
+splitValue(Value, User, Pval):-
+        Pval is mod(Value, 100),
+        User is Value//100.
+
+checkValue(Value, User, Pval):-
+        splitValue(Value, User, Pval).
+
 printLine([]).
 
-printLine([P1|Resto]):-
-        par(X,P1),
+printLine([0|Resto]):-
         print(' '),
         print('|'),
-        print(X),
+        print(' '),
         printLine(Resto).
+
+printLine([P1|Resto]):-
+        checkValue(P1, User, Value),
+        print(' '),
+        print('|'),
+        print(User),
+        print(Value),
+        printLine(Resto).
+
         
 
 printDownSeq(I):-
-        par(X,I),  %%erro aqui par (X;w)
+        par(X,I), 
         print(X).
 
-printBoard([],9).
+printBoard([],11).
 printBoard([L1|Resto],I) :-     
         printDownSeq(I),
         print(' '),
@@ -64,23 +80,34 @@ searchBoardAux([Elem|Rest], [Elem|NewRest], Y, NewElem):-
         NewY is Y-1,
         searchBoardAux(Rest, NewRest, NewY, NewElem).
                 
-searchBoard([Line|Rest], [LineOut|Rest], 1, Y, Sym):-                %% Line Matched Condition
-        searchBoardAux(Line, LineOut, Y, Sym).                    
-searchBoard([Line|Rest], [Line|NewRest], X, Y, Sym):-          %% Searches each line of the Board for until line X
+searchBoard([Line|Rest], [LineOut|Rest], 1, Y, Val):-                %% Line Matched Condition
+        searchBoardAux(Line, LineOut, Y, Val).                    
+searchBoard([Line|Rest], [Line|NewRest], X, Y, Val):-          %% Searches each line of the Board for until line X
         X > 1,
         NewX is X-1,
-        searchBoard(Rest, NewRest, NewX, Y, Sym).
+        searchBoard(Rest, NewRest, NewX, Y, Val).
         
 
-insertPiece(BoardIn, BoardOut, X, Y, Sym):-
-        searchBoard(BoardIn, BoardOut, X, Y, Sym).  
+insertPiece(BoardIn, BoardOut, X, Y, Val):-
+        searchBoard(BoardIn, BoardOut, X, Y, Val).  
 
-doInsertion:-
+movePiece(BoardIn, BoardOut, Xi, Yi, Xf, Yf, Val):-
+        searchBoard(BoardIn, Board2, Xi, Yi, 0),
+        searchBoard(Board2, BoardOut, Xf, Yf, Val).
+
+doInsertion(BoardIn, BoardOut):-        
+        insertPiece(BoardIn, Board1, 4, 5, 112),
+        insertPiece(Board1, Board2, 2, 5, 223),
+        insertPiece(Board2, Board3, 3, 5, 300),
+        insertPiece(Board3,Board4, 10, 10, 124),
+        insertPiece(Board4, BoardOut, 3, 7, 142),
+        printBoard(BoardOut, 1).
+        
+        
+
+doStuff:-
         emptyBoard(Cenas),
-        insertPiece(Cenas, Board1, 4, 5, white),
-        insertPiece(Board1, Board2, 2, 5, white),
-        insertPiece(Board2, Board3, 3, 5, black),
-        insertPiece(Board3, BoardOut, 3, 7, black),
-        
+        doInsertion(Cenas, Board2),
+        movePiece(Board2, BoardOut, 3, 7, 3, 6, 142),
         printBoard(BoardOut, 1).
 
