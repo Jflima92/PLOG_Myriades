@@ -75,17 +75,17 @@ printInitialBoard:-
 
 
 searchBoardAux([_|Rest], [NewElem|Rest], 1, NewElem).        
-searchBoardAux([Elem|Rest], [Elem|NewRest], Y, NewElem):-
-        Y > 1,
-        NewY is Y-1,
-        searchBoardAux(Rest, NewRest, NewY, NewElem).
-                
-searchBoard([Line|Rest], [LineOut|Rest], 1, Y, Val):-                %% Line Matched Condition
-        searchBoardAux(Line, LineOut, Y, Val).                    
-searchBoard([Line|Rest], [Line|NewRest], X, Y, Val):-          %% Searches each line of the Board for until line X
+searchBoardAux([Elem|Rest], [Elem|NewRest], X, NewElem):-
         X > 1,
         NewX is X-1,
-        searchBoard(Rest, NewRest, NewX, Y, Val).
+        searchBoardAux(Rest, NewRest, NewX, NewElem).
+                
+searchBoard([Line|Rest], [LineOut|Rest], X, 1, Val):-                %% Line Matched Condition
+        searchBoardAux(Line, LineOut, X, Val).                    
+searchBoard([Line|Rest], [Line|NewRest], X, Y, Val):-          %% Searches each line of the Board for until line X
+        Y > 1,
+        NewY is Y-1,
+        searchBoard(Rest, NewRest, X, NewY, Val).
         
 
 insertPiece(BoardIn, BoardOut, X, Y, Val):-
