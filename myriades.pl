@@ -95,19 +95,43 @@ movePiece(BoardIn, BoardOut, Xi, Yi, Xf, Yf, Val):-
         searchBoard(BoardIn, Board2, Xi, Yi, 0),
         searchBoard(Board2, BoardOut, Xf, Yf, Val).
 
+searchLine(Val, [Val|_], Y, X, Y, X).
+              
+
+searchLine(Val, [_|Rest], Y, X, CY, CX):-
+        X < 10,
+        NewX is X+1,
+        searchLine(Val, Rest, Y, NewX, CY, CX). 
+
+searchPiece([Line|_], X, Y, Val, CX, CY):-
+        member(Val, Line),        
+        searchLine(Val, Line, Y, X, CY, CX).
+        
+searchPiece([_|Rest], X, Y, Val, CX, CY):-
+        Y < 10,
+        NewY is Y+1,
+        searchPiece(Rest, X, NewY, Val, CX, CY).       
+
+getPiecePos(Val, Board, X, Y):-
+        searchPiece(Board, 1, 1, Val, X, Y).        
+
+%%makePlay(Player, BoardIn, BoardOut, 
+
 doInsertion(BoardIn, BoardOut):-        
         insertPiece(BoardIn, Board1, 4, 5, 112),
         insertPiece(Board1, Board2, 2, 5, 223),
         insertPiece(Board2, Board3, 3, 5, 300),
         insertPiece(Board3,Board4, 10, 10, 124),
         insertPiece(Board4, BoardOut, 3, 7, 142),
-        printBoard(BoardOut, 1).
-        
+        printBoard(BoardOut, 1).        
         
 
 doStuff:-
         emptyBoard(Cenas),
-        doInsertion(Cenas, Board2),
-        movePiece(Board2, BoardOut, 3, 7, 3, 6, 142),
+        doInsertion(Cenas, Board2),        
+        getPiecePos(142, Board2, X, Y),
+        movePiece(Board2, BoardOut, X, Y, 3, 6, 142),
         printBoard(BoardOut, 1).
+
+
 
