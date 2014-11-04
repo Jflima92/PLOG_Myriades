@@ -100,6 +100,26 @@ rejoinValue(Value, User, Pval):-
 checkValue(Value, User, Pval):-
         splitValue(Value, User, Pval).
 
+
+printPieces([]).
+
+printPieces([0|Resto]):-
+        print(' '),
+        print('|'),
+        print(' '),
+        printLine(Resto).
+
+printPieces([P1|Resto]):-
+        print(' '),
+        print('|'),
+        print(P1),
+        printPieces(Resto).
+
+printPlayerPieces(Player):-
+        player(Player, Pieces),
+        printPieces(Pieces).
+        
+
 printLine([]).
 
 printLine([0|Resto]):-
@@ -136,6 +156,13 @@ printInitialBoard:-
         print('  1  2  3  4  5  6  7  8  9  10 '),
         nl,
         printBoard(Cenas,1).
+
+printScenario(Board):-
+        printBoard(Board, 1),
+        print('Player 1 Pieces: '),
+        printPlayerPieces(1),nl,
+        print('Player 2 Pieces: '),
+        printPlayerPieces(2).            
 
 
 searchBoardAux([_|Rest], [NewElem|Rest], 1, NewElem).        
@@ -219,13 +246,10 @@ startGame(Board):-
         
 
 aquelaJogada(Board, Player):-
-
-        player(Player, _),
-        
+        player(Player, _),        
         print('Player '),
         print(Player),
         print(' what would like to do?'),
-
         nl, nl,
         write('1 - Insert a Piece (Mandatory) '), nl,
         write('2 - Move a Piece'), nl,
@@ -253,7 +277,7 @@ play(1, Board, Player):-
         assert(player(Player, PiecesOut)),
         rejoinValue(InsValue,Player, Val),
         insertPiece(Board, BoardOut, X, Y, InsValue),              
-        printBoard(BoardOut, 1),nl,
+        printScenario(BoardOut),nl,nl,
         
         print('You have sucessfully placed a Piece.'),nl,
         print('What would you like to do now?:'),nl,
