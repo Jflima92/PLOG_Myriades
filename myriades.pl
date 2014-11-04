@@ -100,6 +100,10 @@ rejoinValue(Value, User, Pval):-
         User1 is User*100,
         Value is User1+Pval.
 
+checkValue(300, User, Pval):-
+        User is 3,
+        Pval is 00.
+
 checkValue(Value, User, Pval):-
         splitValue(Value, User, Pval).
 
@@ -314,68 +318,68 @@ isEnemy(Player, Player1, Value, Value1):-
 compareValues(Value, Value1):-
         Value > Value1.
 
-checkPos(Board, Player, X, Y, Value, Count):-
-        getPieceByPos(Board, X, Y, Value),
-        splitValue(Value, Player1, Value1),
-        isEnemy(Player, Player1, Value, Value1),        
-        Count is Count+1.
+checkPos(Board, Player, X, Y, Value, NewValue, Count, NewCount):-
+        getPieceByPos(Board, X, Y, NewValue),
+        splitValue(NewValue, Player1, Val),
+        isEnemy(Player, Player1, Value, Val),        
+        NewCount is Count+1.
         
-checkAllNPos(Board, Player, X, Y, Value, Count):-               %% up
+checkAllNPos(Board, Player, X, Y, Value, NewValue, Count, NewCount):-               %% up
         NewY is Y-1,
-        checkPos(Board, Player, X, NewY, Value, Count).
+        checkPos(Board, Player, X, NewY, Value, NewValue, Count, NewCount).
 
-checkAllNPos(Board, Player, X, Y, Value, Count):-               %% Down
+checkAllNPos(Board, Player, X, Y, Value, NewValue, Count, NewCount):-               %% Down
         NewY is Y+1,
-        checkPos(Board, Player, X, NewY, Value, Count).
+        checkPos(Board, Player, X, NewY, Value, NewValue, Count, NewCount).
 
-checkAllNPos(Board, Player, X, Y, Value, Count):-               %% Right
+checkAllNPos(Board, Player, X, Y, Value, NewValue, Count, NewCount):-               %% Right
         NewX is X+1,
-        checkPos(Board, Player, NewX, Y, Value, Count).
+        checkPos(Board, Player, NewX, Y, Value, NewValue, Count, NewCount).
 
-checkAllNPos(Board, Player, X, Y, Value, Count):-               %% Left
+checkAllNPos(Board, Player, X, Y, Value, NewValue, Count, NewCount):-               %% Left
         NewX is X-1,
-        checkPos(Board, Player, NewX, Y, Value, Count).
+        checkPos(Board, Player, NewX, Y, Value, NewValue, Count, NewCount).
 
-checkAllNPos(Board, Player, X, Y, Value, Count):-               %% Up + Left
+checkAllNPos(Board, Player, X, Y, Value, NewValue, Count, NewCount):-               %% Up + Left
         NewY is Y-1,
         NewX is X-1,
-        checkPos(Board, Player, NewX, NewY, Value, Count).
+        checkPos(Board, Player, NewX, NewY, Value, NewValue, Count, NewCount).
 
-checkAllNPos(Board, Player, X, Y, Value, Count):-               %% Up + Right
+checkAllNPos(Board, Player, X, Y, Value, NewValue, Count, NewCount):-               %% Up + Right
         NewY is Y-1,
         NewX is X+1,
-        checkPos(Board, Player, NewX, NewY, Value, Count).
+        checkPos(Board, Player, NewX, NewY, Value, NewValue, Count, NewCount).
 
-checkAllNPos(Board, Player, X, Y, Value, Count):-               %% Down + Right
+checkAllNPos(Board, Player, X, Y, Value, NewValue, Count, NewCount):-               %% Down + Right
         NewY is Y+1,
         NewX is X+1,
-        checkPos(Board, Player, NewX, NewY, Value, Count).
+        checkPos(Board, Player, NewX, NewY, Value, NewValue, Count, NewCount).
 
-checkAllNPos(Board, Player, X, Y, Value, Count):-               %% Down + Left
+checkAllNPos(Board, Player, X, Y, Value, NewValue, Count, NewCount):-               %% Down + Left
         NewY is Y+1,
         NewX is X-1,
-        checkPos(Board, Player, NewX, NewY, Value, Count).       
+        checkPos(Board, Player, NewX, NewY, Value, NewValue, Count, NewCount).       
         
 
-checkPieceNearbyForEnemys(Piece, Board, BoardOut):-
-        trace,                                                                                  %%Verificar Erros aqui!!
+checkPieceNearbyForEnemys(Piece, Board, BoardOut):-                                                                                  %%Verificar Erros aqui!!
         getPiecePos(Piece, Board, X, Y),
         splitValue(Piece, Player, Value),
-        checkAllNPos(Board, Player, X, Y, Value, Count),
-        Count > 0,
+        checkAllNPos(Board, Player, X, Y, Value,  _, 0, NewCount),
+        NewCount > 0,
         print('You have placed your piece nearby to '),
-        print(Count),
+        print(NewCount),
         print(' enemy pieces.'),nl,
-        makeChangesForEachEnemyValueLessThan(Count, Board, BoardOut).
+        makeChangesForEachEnemyValueLessThan(NewCount, Player, Board, BoardOut).
 
-makeChangesForEachEnemyValueLessThan(0, _, _).
-makeChangesForEachEnemyValueLessThan(Count, Board, BoardOut):-
+makeChangesForEachEnemyValueLessThan(0, _, _, _).
+makeChangesForEachEnemyValueLessThan(Count, Player, Board, BoardOut):-
         print('Escolha a peça que deseja retirar: '),
         read(Piece),
-        getPiecePos(Piece, Board, X, Y),
-        insertPiece(Board, BoardOut, X, Y, '300'),
+        rejoinValue(Value, Player, Piece),
+        getPiecePos(Value, Board, X, Y),
+        insertPiece(Board, BoardOut, X, Y, 300),
         NewC is Count-1,
-        makeChangesForEachEnemyValueLessThan(NewC, Board, BoardOut).
+        makeChangesForEachEnemyValueLessThan(NewC, Player, Board, BoardOut).
         
 
 %%%%%%%%%%% Some Test Predicates
