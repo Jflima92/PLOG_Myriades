@@ -55,11 +55,11 @@ player(2, [[1,2,3,4,5,6,7,8,9,10],
 
 intro:-
 
-write('Myriades').
+print('         Myriades').
 
 start:-
         
-         testBoard(Board),
+         emptyBoard(Board),
          startmenu(Board).
 
 startmenu(Board) :-
@@ -161,10 +161,12 @@ printLine([P1|Resto]):-
         printLine(Resto).
 
         
+printDownSeq(10):-
+        print(10).
 
 printDownSeq(I):-
-        par(X,I), 
-        print(X).
+        print(I),
+        print(' ').
 
 printBoard([],11).
 printBoard([L1|Resto],I) :-     
@@ -182,7 +184,8 @@ printInitialBoard:-
         printBoard(Cenas,1).
 
 printScenario(Board):-
-        printBoard(Board, 1),
+        print('      1    2    3    4    5    6    7    8    9    10 '),nl,
+        printBoard(Board, 1),nl,
         print('Player 1 Pieces: '),
         printPlayerPieces(1),nl,
         print('Player 2 Pieces: '),
@@ -347,6 +350,31 @@ checkBool(1, Inc, Count):-
 checkBool(0, Inc, Count):-        
         Count  is Inc+1.
 
+checkAllNPos(Board, Player, X, 1, Value, CountOut, 1, FC):-
+        checkAllNPos(Board, Player, X, 1, Value, CountOut, 2, FC).                      %%up verification
+
+checkAllNPos(Board, Player, X, 10, Value, CountOut, 2, FC):-                            %%down verification
+        checkAllNPos(Board, Player, X, 10, Value, CountOut, 3, FC).
+
+checkAllNPos(Board, Player, 10, Y, Value, CountOut, 3, FC):-                            %%right verification
+        checkAllNPos(Board, Player, 10, Y, Value, CountOut, 4, FC).
+
+checkAllNPos(Board, Player, 1, Y, Value, CountOut, 4, FC):-                             %%left verification
+        checkAllNPos(Board, Player, 1, Y, Value, CountOut, 5, FC).
+
+checkAllNPos(Board, Player, 1, X, Value, CountOut, 5, FC):-                             %%up-left
+        checkAllNPos(Board, Player, 1, X, Value, CountOut, 6, FC).
+
+checkAllNPos(Board, Player, X, 1, Value, CountOut, 6, FC):-                            %%up-right
+        checkAllNPos(Board, Player, X, 1, Value, CountOut, 7, FC).
+
+checkAllNPos(Board, Player, X, 10, Value, CountOut, 7, FC):-
+        checkAllNPos(Board, Player, X, 10, Value, CountOut, 8, FC).
+
+checkAllNPos(_, _, 1, _, _, CountOut, 8,CountOut).
+
+        
+        
 checkAllNPos(Board, Player, X, Y, Value, Count, 1, FC):-               %% up
         NewY is Y-1,
         getPieceByPos(Board, X, NewY, NewValue),
@@ -357,6 +385,7 @@ checkAllNPos(Board, Player, X, Y, Value, Count, 1, FC):-               %% up
 
 checkAllNPos(Board, Player, X, Y, Value, Count, 2, FC):-               %% Down
         NewY is Y+1,
+        NewY < 10,
         getPieceByPos(Board, X, NewY, NewValue),
         splitValue(NewValue, Player1, Val),
         checkIfEnemy(Player, Player1, Value, Val, Bool),
@@ -364,7 +393,8 @@ checkAllNPos(Board, Player, X, Y, Value, Count, 2, FC):-               %% Down
         checkAllNPos(Board, Player, X, Y, Value, NewCount, 3, FC).
 
 checkAllNPos(Board, Player, X, Y, Value, Count, 3, FC):-               %% Right
-        NewX is X+1,
+        NewX is X+1,        
+        NewX < 10,
         getPieceByPos(Board, NewX, Y, NewValue),
         splitValue(NewValue, Player1, Val),
         checkIfEnemy(Player, Player1, Value, Val, Bool),
@@ -430,12 +460,16 @@ checkPieceNearbyForEnemys(Piece, Board, BoardOut, Count):-
 
 makeChangesForEachEnemyValueLessThan(0, _, _, _).
 makeChangesForEachEnemyValueLessThan(Count, Player, Board, BoardOut):-
-        print(Count),nl,
         print('Escolha a peça que deseja retirar: '),
         read(Piece),
         rejoinValue(Value, Player, Piece),
+        player(Player, Pieces),
         getPiecePos(Value, Board, X, Y),
-        insertPiece(Board, BoardOut, X, Y, 300),                        
+        insertPiece(Board, BoardOut, X, Y, 300),   
+        getPiecePosInPieces(-1, Pieces, Xpi, Ypi),
+        insertPiece(Pieces, PiecesOut, Xpi, Ypi, Piece),
+        retract(player(Player, Pieces)),
+        assert(player(Player, PiecesOut)),                     
         NewC is Count-1,
         makeChangesForEachEnemyValueLessThan(NewC, Player, Board, BoardOut).
         
@@ -462,13 +496,19 @@ doStuff:-
 
 %%%%%%%%%% Game Start
 
+
 startGame(Board):-
+        nl,
         print('Before we start to play, please decide which one of you will be the player with the blank pieces and the black ones.'),nl,  %%Possibly to remove
         print('Please be aware that the player with the blank pieces starts.'),nl,
+        nl,
+        print('Initial Board: '),nl,nl,
+        printScenario(Board),nl,
         aquelaJogada(Board, 1).
         
 
-aquelaJogada(Board, Player):-
+aquelaJogada(Board, Player):-   
+        nl,nl,     
         player(Player, _),        
         print('Player '),
         print(Player),
@@ -494,14 +534,16 @@ play(1, Board, Player):-
         read(Y),
         player(Player, Pieces),
         getPiecePosInPieces(Val, Pieces, Xp, Yp),
-        insertPiece(Pieces, PiecesOut, Xp, Yp, '-1'),
+        insertPiece(Pieces, PiecesOut, Xp, Yp, -1),
         
         retract(player(Player, Pieces)),
         assert(player(Player, PiecesOut)),
         
         rejoinValue(InsValue,Player, Val),
         
-        insertPiece(Board, BoardOut, X, Y, InsValue),              
+        insertPiece(Board, BoardOut, X, Y, InsValue),nl,
+        nl,
+        print('Current Board: '),nl,nl,              
         printScenario(BoardOut),nl,nl,
         
         print('You have sucessfully placed a Piece.'),nl,
@@ -510,9 +552,7 @@ play(1, Board, Player):-
         print('2 - Pass the turn'),nl,
         
         read(Opt),
-        checkNextOption(Opt, BoardOut, Player, InsValue),
-        trace,
-        
+        checkNextOption(Opt, BoardOut, Player, InsValue),        
         aquelaJogada(BoardOut, Player).
 
         
@@ -534,10 +574,9 @@ play(2, Board, Player, Piece):-
         splitValue(Piece, Player, Value),
         checkAllNPos(Board1, Player, X, Y, Value, 0, 1, NewCount),
         checkPieceNearbyForEnemys(Piece, Board1, BoardOut, NewCount),
-%        getPiecePos(InsValue, Board, Xi, Yi),
-%        
-%        movePiece(Board, BoardOut, Xi, Yi, X, Y, InsValue),              
-        printBoard(BoardOut, 1),nl, nl,
+        print('Current Board: '),nl,nl,              
+        printScenario(BoardOut),nl, nl,
+        hasGameEnded(BoardOut, Conf),
         
         print('Your turn has finished.'),nl,
         
@@ -580,5 +619,27 @@ checkNextOption(2, BoardOut, Player, _):-
         aquelaJogada(BoardOut, Next).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%% End Game Verification 
+
+searchBoardForEmpty([Line|_], _, Val):-
+        member(Val, Line).
+        
+searchBoardForEmpty([_|Rest], Y, Val):-
+        Y < 10,
+        NewY is Y+1,
+        searchBoardForEmpty(Rest, NewY, Val).
+
+isBoardFull(Board, HasIt):-
+        searchBoardForEmpty(Board, 0, 0),
+        HasIt is 0.
+
+isBoardFull(Board, HasIt):-
+        \+searchBoardForEmpty(Board, 0, 0),
+        HasIt is 1.
+        
+        
+hasGameEnded(Board, HasIt):-
+        isBoardFull(Board, HasIt).
 
 
