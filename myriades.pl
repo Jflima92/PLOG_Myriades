@@ -505,8 +505,50 @@ startGame(Board):-
         print('Initial Board: '),nl,nl,
         printScenario(Board),nl,
         aquelaJogada(Board, 1).
-        
 
+
+checkRightPlayer(Player, Player).
+
+searchLine1(Val, [_|Rest], 10, 10, Player, AccumPoints, Points).              
+ 
+
+searchLine1([Val|Rest],  Y, X, Player, AccumPoints, Points):-
+        X < 11,
+        NewX is X+1,
+        splitValue(Val, Player1, Pval),
+        checkRightPlayer(Player, Player1),
+        Points is AccumPoints+Pval,
+        searchLine(Rest, Y, NewX, Player, Points, AccumPoints).  
+
+searchLine1([Val|Rest],  Y, X, Player, AccumPoints, Points):-
+        X < 11,
+        NewX is X+1,
+        searchLine(Rest, Y, NewX, Player, Points, AccumPoints).
+
+searchBoardForPlayerPieces([Line|_], X, Y, Player, AccumPoints, Points):-
+        searchLine1(Line, Line, Y, X, Player, AccumPoints, Points).
+        
+searchBoardForPlayerPieces([_|Rest], X, Y, Player, AccumPoints, Points):-
+        Y < 10,
+        NewY is Y+1,
+        searchBoardForPlayerPieces(Rest, X, NewY, Player, AccumPoints, Points).
+
+
+
+getPlayerPoints(Board, Player, _, Points):-
+        searchBoardForPlayerPieces(Board, 1, 1, Player, 0, Points).        
+
+
+aquelaJogada(Board, _, 1):-                                     %%Menu final com pontuações acabado
+        nl,nl,nl,
+        getPlayerPoints(Board, 1, _,  Points1),
+        getPlayerPoints(Board, 2, _,  Points2),
+        print('End Of Game!!!'),nl,
+        print('Player 1, you scored : '), print(Points1), print(' points!!'),nl,
+        print('Player 2, you scored : '), print(Points2), print(' points!!'),nl,
+        nl,
+        print('We hope you enjoyed, come back soon!!'),nl,nl.
+ 
 aquelaJogada(Board, Player):-   
         nl,nl,     
         player(Player, _),        
@@ -573,12 +615,12 @@ play(2, Board, Player, Piece):-
         getPiecePos(Piece, Board1, X, Y),
         splitValue(Piece, Player, Value),
         checkAllNPos(Board1, Player, X, Y, Value, 0, 1, NewCount),
-        checkPieceNearbyForEnemys(Piece, Board1, BoardOut, NewCount),
+        checkPieceNearbyForEnemys(Piece, Board1, BoardOut, NewCount),nl,nl,
         print('Current Board: '),nl,nl,              
         printScenario(BoardOut),nl, nl,
-        hasGameEnded(BoardOut, Conf),
+        %%hasGameEnded(BoardOut, Conf),
         
-        print('Your turn has finished.'),nl,
+        print('Your turn has finished.'),
         
         checkPlayer(Player, Next),
         aquelaJogada(BoardOut, Next).
