@@ -16,6 +16,19 @@ emptyBoard([[0,0,0,0,0,0,0,0,0,0],
 [0,0,0,0,0,0,0,0,0,0],
 [0,0,0,0,0,0,0,0,0,0]]).
 
+
+testBoard([[0,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,123,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0],
+[0,0,212,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,125,0,0],
+[0,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0]]).
+
+
 initialPieces([[1,2,3,4,5,6,7,8,9],
               [10,11,12,13,14,15,16,17,18,19],
               [20,21,22,23,24,25,26,27,28,29],
@@ -46,7 +59,7 @@ write('Myriades').
 
 start:-
         
-         emptyBoard(Board),
+         testBoard(Board),
          startmenu(Board).
 
 startmenu(Board) :-
@@ -101,7 +114,7 @@ rejoinValue(Value, User, Pval):-
         Value is User1+Pval.
 
 checkValue(300, User, Pval):-
-        User is 3,
+        User is 30,
         Pval is 00.
 
 checkValue(Value, User, Pval):-
@@ -136,7 +149,7 @@ printLine([]).
 printLine([0|Resto]):-
         print(' '),
         print('|'),
-        print(' '),
+        print('   '),
         printLine(Resto).
 
 printLine([P1|Resto]):-
@@ -223,14 +236,17 @@ getPieceByPos(Board, X, Y, Value):-
         searchBoard(Board, X, Y, Value). 
 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%tra%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%% Search for X and Y values of Val Piece in the Board and Also in the List of Pieces
+
+
+
 searchLine(Val, [Val|_], Y, X, Y, X).
               
 
 searchLine(Val, [_|Rest], Y, X, CY, CX):-
-        X < 6,
+        X < 10,
         NewX is X+1,
         searchLine(Val, Rest, Y, NewX, CY, CX). 
 
@@ -265,45 +281,45 @@ getPiecePosInPieces(Val, Board, X, Y):-
 %%  8 POSSIBLE MOVEMENTS THAT CAN BE DONE
 
 movePieceByZone(Piece, Board, 1, Value, BoardOut):-           %% UP MOVEMENT VALUE STEPS
-        getPiecePosInPieces(Piece, Board, X, Y),
+        getPiecePos(Piece, Board, X, Y),
         NewY is Y-Value,
         movePiece(Board, BoardOut, X, Y, X, NewY, Piece).
 
 movePieceByZone(Piece, Board, 2, Value, BoardOut):-           %% DOWN MOVEMENT VALUE STEPS
-        getPiecePosInPieces(Piece, Board, X, Y),
+        getPiecePos(Piece, Board, X, Y),
         NewY is Y+Value,
         movePiece(Board, BoardOut, X, Y, X, NewY, Piece).
 
 movePieceByZone(Piece, Board, 3, Value, BoardOut):-           %% LEFT MOVEMENT VALUE STEPS
-        getPiecePosInPieces(Piece, Board, X, Y),
+        getPiecePos(Piece, Board, X, Y),
         NewX is X-Value,
         movePiece(Board, BoardOut, X, Y, NewX, Y, Piece).
 
 movePieceByZone(Piece, Board, 4, Value, BoardOut):-           %% RIGHT MOVEMENT VALUE STEPS
-        getPiecePosInPieces(Piece, Board, X, Y),
+        getPiecePos(Piece, Board, X, Y),
         NewX is X+Value,
         movePiece(Board, BoardOut, X, Y, NewX, Y, Piece).
 
 movePieceByZone(Piece, Board, 5, Value, BoardOut):-           %% UP + LEFT MOVEMENT VALUE STEPS
-        getPiecePosInPieces(Piece, Board, X, Y),
+        getPiecePos(Piece, Board, X, Y),
         NewY is Y-Value,
         NewX is X-Value,
         movePiece(Board, BoardOut, X, Y, NewX, NewY, Piece).
 
 movePieceByZone(Piece, Board, 6, Value, BoardOut):-           %% UP + RIGHT MOVEMENT VALUE STEPS
-        getPiecePosInPieces(Piece, Board, X, Y),
+        getPiecePos(Piece, Board, X, Y),
         NewY is Y-Value,
         NewX is X+Value,
         movePiece(Board, BoardOut, X, Y, NewX, NewY, Piece).
 
 movePieceByZone(Piece, Board, 7, Value, BoardOut):-           %% DOWN + LEFT MOVEMENT VALUE STEPS
-        getPiecePosInPieces(Piece, Board, X, Y),
+        getPiecePos(Piece, Board, X, Y),
         NewY is Y+Value,
         NewX is X-Value,
         movePiece(Board, BoardOut, X, Y, NewX, NewY, Piece).
 
 movePieceByZone(Piece, Board, 8, Value, BoardOut):-           %% DOWN + RIGHT MOVEMENT VALUE STEPS
-        getPiecePosInPieces(Piece, Board, X, Y),
+        getPiecePos(Piece, Board, X, Y),
         NewY is Y+Value,
         NewX is X+Value,
         movePiece(Board, BoardOut, X, Y, NewX, NewY, Piece).
@@ -313,71 +329,113 @@ movePieceByZone(Piece, Board, 8, Value, BoardOut):-           %% DOWN + RIGHT MO
         
 isEnemy(Player, Player1, Value, Value1):-
          checkPlayer(Player, Player1),
-         compareValues(Value, Value1).         
+         compareValues(Value, Value1). 
+
+checkIfEnemy(Player, Player1, Value, Value1, 1):-
+        \+isEnemy(Player, Player1, Value, Value1).
+
+checkIfEnemy(Player, Player1, Value, Value1, 0):-
+        isEnemy(Player, Player1, Value, Value1).
+                
 
 compareValues(Value, Value1):-
         Value > Value1.
 
-checkPos(Board, Player, X, Y, Value, NewValue, Count, NewCount):-
-        getPieceByPos(Board, X, Y, NewValue),
+checkBool(1, Inc, Count):-
+        Count is Inc.
+
+checkBool(0, Inc, Count):-        
+        Count  is Inc+1.
+
+checkAllNPos(Board, Player, X, Y, Value, Count, 1, FC):-               %% up
+        NewY is Y-1,
+        getPieceByPos(Board, X, NewY, NewValue),
         splitValue(NewValue, Player1, Val),
-        isEnemy(Player, Player1, Value, Val),        
-        NewCount is Count+1.
+        checkIfEnemy(Player, Player1, Value, Val, Bool),
+        checkBool(Bool, Count, CountOut),
+        checkAllNPos(Board, Player, X, Y, Value, CountOut, 2, FC).
+
+checkAllNPos(Board, Player, X, Y, Value, Count, 2, FC):-               %% Down
+        NewY is Y+1,
+        getPieceByPos(Board, X, NewY, NewValue),
+        splitValue(NewValue, Player1, Val),
+        checkIfEnemy(Player, Player1, Value, Val, Bool),
+        checkBool(Bool, Count, NewCount),
+        checkAllNPos(Board, Player, X, Y, Value, NewCount, 3, FC).
+
+checkAllNPos(Board, Player, X, Y, Value, Count, 3, FC):-               %% Right
+        NewX is X+1,
+        getPieceByPos(Board, NewX, Y, NewValue),
+        splitValue(NewValue, Player1, Val),
+        checkIfEnemy(Player, Player1, Value, Val, Bool),
+        checkBool(Bool, Count, NewCount),
+        checkAllNPos(Board, Player, X, Y, Value, NewCount, 4, FC).
+
+checkAllNPos(Board, Player, X, Y, Value, Count, 4, FC):-               %% Left
+        NewX is X-1,
+        getPieceByPos(Board, NewX, Y, NewValue),
+        splitValue(NewValue, Player1, Val),
+        checkIfEnemy(Player, Player1, Value, Val, Bool),
+        checkBool(Bool, Count, NewCount),
+        checkAllNPos(Board, Player, X, Y, Value, NewCount, 5, FC).
+
+checkAllNPos(Board, Player, X, Y, Value, Count, 5, FC):-               %% Up + Left
+        NewY is Y-1,
+        NewX is X-1,
+        getPieceByPos(Board, NewX, NewY, NewValue),
+        splitValue(NewValue, Player1, Val),
+        checkIfEnemy(Player, Player1, Value, Val, Bool),
+        checkBool(Bool, Count, NewCount),
+        checkAllNPos(Board, Player, X, Y, Value, NewCount, 6, FC).
+
+checkAllNPos(Board, Player, X, Y, Value, Count, 6, FC):-               %% Up + Right
+        NewY is Y-1,
+        NewX is X+1,
+        getPieceByPos(Board, NewX, NewY, NewValue),
+        splitValue(NewValue, Player1, Val),
+        checkIfEnemy(Player, Player1, Value, Val, Bool),
+        checkBool(Bool, Count, NewCount),
+        checkAllNPos(Board, Player, X, Y, Value, NewCount, 7, FC).
+
+checkAllNPos(Board, Player, X, Y, Value, Count, 7, FC):-               %% Down + Right
+        NewY is Y+1,
+        NewX is X+1,
+        getPieceByPos(Board, NewX, NewY, NewValue),
+        splitValue(NewValue, Player1, Val),
+        checkIfEnemy(Player, Player1, Value, Val, Bool),
+        checkBool(Bool, Count, NewCount),
+        checkAllNPos(Board, Player, X, Y, Value, NewCount, 8, FC).
+
+checkAllNPos(Board, Player, X, Y, Value, Count, 8, NewCount):-               %% Down + Left
+        NewY is Y+1,
+        NewX is X-1,
+        getPieceByPos(Board, NewX, NewY, NewValue),
+        splitValue(NewValue, Player1, Val),
+        checkIfEnemy(Player, Player1, Value, Val, Bool),
+        checkBool(Bool, Count, NewCount).       
         
-checkAllNPos(Board, Player, X, Y, Value, NewValue, Count, NewCount):-               %% up
-        NewY is Y-1,
-        checkPos(Board, Player, X, NewY, Value, NewValue, Count, NewCount).
+boardMakeEqual(Board, Board).
 
-checkAllNPos(Board, Player, X, Y, Value, NewValue, Count, NewCount):-               %% Down
-        NewY is Y+1,
-        checkPos(Board, Player, X, NewY, Value, NewValue, Count, NewCount).
+checkPieceNearbyForEnemys(_, Board, BoardOut, 0):- 
+        boardMakeEqual(Board, BoardOut).                    %%  Erro n verificação crasha sempre
 
-checkAllNPos(Board, Player, X, Y, Value, NewValue, Count, NewCount):-               %% Right
-        NewX is X+1,
-        checkPos(Board, Player, NewX, Y, Value, NewValue, Count, NewCount).
 
-checkAllNPos(Board, Player, X, Y, Value, NewValue, Count, NewCount):-               %% Left
-        NewX is X-1,
-        checkPos(Board, Player, NewX, Y, Value, NewValue, Count, NewCount).
-
-checkAllNPos(Board, Player, X, Y, Value, NewValue, Count, NewCount):-               %% Up + Left
-        NewY is Y-1,
-        NewX is X-1,
-        checkPos(Board, Player, NewX, NewY, Value, NewValue, Count, NewCount).
-
-checkAllNPos(Board, Player, X, Y, Value, NewValue, Count, NewCount):-               %% Up + Right
-        NewY is Y-1,
-        NewX is X+1,
-        checkPos(Board, Player, NewX, NewY, Value, NewValue, Count, NewCount).
-
-checkAllNPos(Board, Player, X, Y, Value, NewValue, Count, NewCount):-               %% Down + Right
-        NewY is Y+1,
-        NewX is X+1,
-        checkPos(Board, Player, NewX, NewY, Value, NewValue, Count, NewCount).
-
-checkAllNPos(Board, Player, X, Y, Value, NewValue, Count, NewCount):-               %% Down + Left
-        NewY is Y+1,
-        NewX is X-1,
-        checkPos(Board, Player, NewX, NewY, Value, NewValue, Count, NewCount).       
-        
-
-checkPieceNearbyForEnemys(Piece, Board, BoardOut):-                                                                                  %%Verificar Erros aqui!!
-        getPiecePos(Piece, Board, X, Y),
-        splitValue(Piece, Player, Value),
-        checkAllNPos(Board, Player, X, Y, Value,  _, 0, NewCount),
-        NewCount > 0,
+checkPieceNearbyForEnemys(Piece, Board, BoardOut, Count):- 
+        splitValue(Piece, Player, _),                                              
+        Count > 0,
         print('You have placed your piece nearby to '),
-        print(NewCount),
+        print(Count),
         print(' enemy pieces.'),nl,
-        makeChangesForEachEnemyValueLessThan(NewCount, Player, Board, BoardOut).
+        makeChangesForEachEnemyValueLessThan(Count, Player, Board, BoardOut).
 
 makeChangesForEachEnemyValueLessThan(0, _, _, _).
 makeChangesForEachEnemyValueLessThan(Count, Player, Board, BoardOut):-
+        print(Count),nl,
         print('Escolha a peça que deseja retirar: '),
         read(Piece),
         rejoinValue(Value, Player, Piece),
         getPiecePos(Value, Board, X, Y),
-        insertPiece(Board, BoardOut, X, Y, 300),
+        insertPiece(Board, BoardOut, X, Y, 300),                        
         NewC is Count-1,
         makeChangesForEachEnemyValueLessThan(NewC, Player, Board, BoardOut).
         
@@ -417,7 +475,6 @@ aquelaJogada(Board, Player):-
         print(' what would like to do?'),
         nl, nl,
         write('1 - Insert a Piece (Mandatory) '), nl,
-        write('2 - Move a Piece'), nl,
         write('0 - Exit'), nl,
        
         repeat, read(Op), Op >= 0, Op =< 12,!,
@@ -435,7 +492,6 @@ play(1, Board, Player):-
         read(X),
         print('Y: '),nl,
         read(Y),
-        
         player(Player, Pieces),
         getPiecePosInPieces(Val, Pieces, Xp, Yp),
         insertPiece(Pieces, PiecesOut, Xp, Yp, '-1'),
@@ -454,13 +510,13 @@ play(1, Board, Player):-
         print('2 - Pass the turn'),nl,
         
         read(Opt),
-        checkNextOption(Opt, BoardOut, Player),
+        checkNextOption(Opt, BoardOut, Player, InsValue),
+        trace,
         
         aquelaJogada(BoardOut, Player).
 
-play(2, Board, Player):-
-        print('Please insert the value of the piece you wish to move: '),nl,
-        read(Val), 
+        
+play(2, Board, Player, Piece):-
         print('Where do you want to move the piece to: '),nl,
         print('1 - North | '),
         print('2 - South | '),
@@ -473,10 +529,11 @@ play(2, Board, Player):-
         read(Zone),
         print('How many fields do you want to move? '),
         read(MFields),
-        
-        rejoinValue(InsValue, Player, Val),
-        movePieceByZone(InsValue, Board, Zone, MFields, Board1),
-        checkPieceNearbyForEnemys(InsValue, Board1, BoardOut),
+        movePieceByZone(Piece, Board, Zone, MFields, Board1),
+        getPiecePos(Piece, Board1, X, Y),
+        splitValue(Piece, Player, Value),
+        checkAllNPos(Board1, Player, X, Y, Value, 0, 1, NewCount),
+        checkPieceNearbyForEnemys(Piece, Board1, BoardOut, NewCount),
 %        getPiecePos(InsValue, Board, Xi, Yi),
 %        
 %        movePiece(Board, BoardOut, Xi, Yi, X, Y, InsValue),              
@@ -501,10 +558,24 @@ checkPlayer(2, Next):-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%% Verify user Input and calls wanted predicate
-checkNextOption(1, BoardOut, Player):-
-        play(2, BoardOut, Player).
 
-checkNextOption(2, BoardOut, Player):-
+getNewPiece(PrePiece, PieceIn, _, _, PieceOut):-         
+        PrePiece =\= PieceIn,
+        PieceOut is PieceIn.
+        
+getNewPiece(PrePiece, PieceIn, BoardOut, Player, _):-         
+        PrePiece =:= PieceIn,
+        print('You cannot move the Piece you just placed, please use another Piece. '), nl,
+        checkNextOption(1, BoardOut, Player, PrePiece).
+
+checkNextOption(1, BoardOut, Player, PrePiece):-
+        print('Please insert the value of the piece you wish to move: '),nl,
+        read(Val),
+        rejoinValue(PieceIn, Player, Val),
+        getNewPiece(PrePiece, PieceIn, BoardOut, Player, PieceOut),
+        play(2, BoardOut, Player, PieceOut).
+
+checkNextOption(2, BoardOut, Player, _):-
         checkPlayer(Player, Next),
         aquelaJogada(BoardOut, Next).
 
