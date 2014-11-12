@@ -17,15 +17,15 @@ emptyBoard([[0,0,0,0,0,0,0,0,0,0],
 [0,0,0,0,0,0,0,0,0,0]]).
 
 
-testBoard([[0,0,0,0,0,0,0,0,0,0],
+testBoard([[145,0,300,0,0,0,0,0,0,0],
 [0,0,0,0,0,0,0,0,0,0],
-[0,0,0,0,0,0,0,0,0,0],
+[0,0,300,0,0,0,0,0,0,0],
 [0,0,0,0,0,123,0,0,0,0],
 [0,0,0,0,0,0,0,0,0,0],
-[0,0,212,0,0,0,0,0,0,0],
-[0,0,0,0,0,0,0,0,0,0],
+[0,125,212,0,0,0,0,0,0,0],
+[0,232,0,0,0,0,300,0,0,0],
 [0,0,0,0,0,0,0,125,0,0],
-[0,0,0,0,0,0,0,0,0,0],
+[0,0,300,0,0,0,0,0,0,0],
 [0,0,0,0,0,0,0,0,0,0]]).
 
 
@@ -286,49 +286,67 @@ getPiecePosInPieces(Val, Board, X, Y):-
 movePieceByZone(Piece, Board, 1, Value, BoardOut):-           %% UP MOVEMENT VALUE STEPS
         getPiecePos(Piece, Board, X, Y),
         NewY is Y-Value,
+        splitValue(Piece, Player, _),
+        isPosEmpty(Board, Player, Piece, X, NewY, 2),
         movePiece(Board, BoardOut, X, Y, X, NewY, Piece).
 
 movePieceByZone(Piece, Board, 2, Value, BoardOut):-           %% DOWN MOVEMENT VALUE STEPS
         getPiecePos(Piece, Board, X, Y),
         NewY is Y+Value,
+        splitValue(Piece, Player, _),
+        isPosEmpty(Board, Player, Piece, X, NewY, 2),
         movePiece(Board, BoardOut, X, Y, X, NewY, Piece).
 
 movePieceByZone(Piece, Board, 3, Value, BoardOut):-           %% LEFT MOVEMENT VALUE STEPS
         getPiecePos(Piece, Board, X, Y),
         NewX is X-Value,
+        splitValue(Piece, Player, _),
+        isPosEmpty(Board, Player, Piece, NewX, Y, 2),
         movePiece(Board, BoardOut, X, Y, NewX, Y, Piece).
 
 movePieceByZone(Piece, Board, 4, Value, BoardOut):-           %% RIGHT MOVEMENT VALUE STEPS
         getPiecePos(Piece, Board, X, Y),
         NewX is X+Value,
+        splitValue(Piece, Player, _),
+        isPosEmpty(Board, Player, Piece, NewX, Y, 2),
         movePiece(Board, BoardOut, X, Y, NewX, Y, Piece).
 
 movePieceByZone(Piece, Board, 5, Value, BoardOut):-           %% UP + LEFT MOVEMENT VALUE STEPS
         getPiecePos(Piece, Board, X, Y),
         NewY is Y-Value,
         NewX is X-Value,
+        splitValue(Piece, Player, _),
+        isPosEmpty(Board, Player, Piece, NewX, NewY, 2),
         movePiece(Board, BoardOut, X, Y, NewX, NewY, Piece).
 
 movePieceByZone(Piece, Board, 6, Value, BoardOut):-           %% UP + RIGHT MOVEMENT VALUE STEPS
         getPiecePos(Piece, Board, X, Y),
         NewY is Y-Value,
         NewX is X+Value,
+        splitValue(Piece, Player, _),
+        isPosEmpty(Board, Player, Piece, NewX, NewY, 2),
         movePiece(Board, BoardOut, X, Y, NewX, NewY, Piece).
 
 movePieceByZone(Piece, Board, 7, Value, BoardOut):-           %% DOWN + LEFT MOVEMENT VALUE STEPS
         getPiecePos(Piece, Board, X, Y),
         NewY is Y+Value,
         NewX is X-Value,
+        splitValue(Piece, Player, _),
+        isPosEmpty(Board, Player, Piece, NewX, NewY, 2),
         movePiece(Board, BoardOut, X, Y, NewX, NewY, Piece).
 
 movePieceByZone(Piece, Board, 8, Value, BoardOut):-           %% DOWN + RIGHT MOVEMENT VALUE STEPS
         getPiecePos(Piece, Board, X, Y),
         NewY is Y+Value,
         NewX is X+Value,
+        splitValue(Piece, Player, _),
+        isPosEmpty(Board, Player, Piece, NewX, NewY, 2),
         movePiece(Board, BoardOut, X, Y, NewX, NewY, Piece).
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%% Enemy nearby verification
         
 isEnemy(Player, Player1, Value, Value1):-
          checkPlayer(Player, Player1),
@@ -372,7 +390,6 @@ checkAllNPos(Board, Player, X, 10, Value, CountOut, 7, FC):-
         checkAllNPos(Board, Player, X, 10, Value, CountOut, 8, FC).
 
 checkAllNPos(_, _, 1, _, _, CountOut, 8,CountOut).
-
         
         
 checkAllNPos(Board, Player, X, Y, Value, Count, 1, FC):-               %% up
@@ -447,7 +464,7 @@ checkAllNPos(Board, Player, X, Y, Value, Count, 8, NewCount):-               %% 
 boardMakeEqual(Board, Board).
 
 checkPieceNearbyForEnemys(_, Board, BoardOut, 0):- 
-        boardMakeEqual(Board, BoardOut).                    %%  Erro n verificação crasha sempre
+        boardMakeEqual(Board, BoardOut).                    
 
 
 checkPieceNearbyForEnemys(Piece, Board, BoardOut, Count):- 
@@ -472,6 +489,27 @@ makeChangesForEachEnemyValueLessThan(Count, Player, Board, BoardOut):-
         assert(player(Player, PiecesOut)),                     
         NewC is Count-1,
         makeChangesForEachEnemyValueLessThan(NewC, Player, Board, BoardOut).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%Check if pos empty
+
+isPosEmpty(Board, Player, Piece, X, Y, 2):- 
+        trace,
+        getPieceByPos(Board, X, Y, Val),
+        \+checkRightPlayer(0, Val),
+        print('You cant place a piece there!'),nl,nl,
+        checkNextOption(1, Board, Player, Piece).
+
+isPosEmpty(Board, Player, X, Y, 1):- 
+        getPieceByPos(Board, X, Y, Val),
+        \+checkRightPlayer(0, Val),
+        print('You cant place a piece there!'),nl,
+        play(1, Board, Player).
+                           
+isPosEmpty(Board, _, X, Y, _):- 
+        getPieceByPos(Board, X, Y, Val),
+        checkRightPlayer(0, Val).
         
 
 %%%%%%%%%%% Some Test Predicates
@@ -507,39 +545,11 @@ startGame(Board):-
         aquelaJogada(Board, 1).
 
 
-checkRightPlayer(Player, Player).
-
-searchLine1(Val, [_|Rest], 10, 10, Player, AccumPoints, Points).              
- 
-
-searchLine1([Val|Rest],  Y, X, Player, AccumPoints, Points):-
-        X < 11,
-        NewX is X+1,
-        splitValue(Val, Player1, Pval),
-        checkRightPlayer(Player, Player1),
-        Points is AccumPoints+Pval,
-        searchLine(Rest, Y, NewX, Player, Points, AccumPoints).  
-
-searchLine1([Val|Rest],  Y, X, Player, AccumPoints, Points):-
-        X < 11,
-        NewX is X+1,
-        searchLine(Rest, Y, NewX, Player, Points, AccumPoints).
-
-searchBoardForPlayerPieces([Line|_], X, Y, Player, AccumPoints, Points):-
-        searchLine1(Line, Line, Y, X, Player, AccumPoints, Points).
-        
-searchBoardForPlayerPieces([_|Rest], X, Y, Player, AccumPoints, Points):-
-        Y < 10,
-        NewY is Y+1,
-        searchBoardForPlayerPieces(Rest, X, NewY, Player, AccumPoints, Points).
-
-
-
 getPlayerPoints(Board, Player, _, Points):-
         searchBoardForPlayerPieces(Board, 1, 1, Player, 0, Points).        
 
 
-aquelaJogada(Board, _, 1):-                                     %%Menu final com pontuações acabado
+getPoints(Board, _, 1):-                                     %%Menu final com pontuações inacabado
         nl,nl,nl,
         getPlayerPoints(Board, 1, _,  Points1),
         getPlayerPoints(Board, 2, _,  Points2),
@@ -577,12 +587,10 @@ play(1, Board, Player):-
         player(Player, Pieces),
         getPiecePosInPieces(Val, Pieces, Xp, Yp),
         insertPiece(Pieces, PiecesOut, Xp, Yp, -1),
-        
+        isPosEmpty(Board, Player, X, Y, 1),
         retract(player(Player, Pieces)),
         assert(player(Player, PiecesOut)),
-        
         rejoinValue(InsValue,Player, Val),
-        
         insertPiece(Board, BoardOut, X, Y, InsValue),nl,
         nl,
         print('Current Board: '),nl,nl,              
@@ -684,4 +692,33 @@ isBoardFull(Board, HasIt):-
 hasGameEnded(Board, HasIt):-
         isBoardFull(Board, HasIt).
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%% Sum calculation of player points
+
+checkRightPlayer(Player, Player).
+
+searchLine1(_, [_|_], 10, 10, _, _, _).              
+ 
+
+searchLine1([Val|Rest],  Y, X, Player, AccumPoints, Points):-
+        X < 11,
+        NewX is X+1,
+        splitValue(Val, Player1, Pval),
+        checkRightPlayer(Player, Player1),
+        Points is AccumPoints+Pval,
+        searchLine(Rest, Y, NewX, Player, Points, AccumPoints).  
+
+searchLine1([_|Rest],  Y, X, Player, AccumPoints, Points):-
+        X < 11,
+        NewX is X+1,
+        searchLine(Rest, Y, NewX, Player, Points, AccumPoints).
+
+searchBoardForPlayerPieces([Line|_], X, Y, Player, AccumPoints, Points):-
+        searchLine1(Line, Line, Y, X, Player, AccumPoints, Points).
+        
+searchBoardForPlayerPieces([_|Rest], X, Y, Player, AccumPoints, Points):-
+        Y < 10,
+        NewY is Y+1,
+        searchBoardForPlayerPieces(Rest, X, NewY, Player, AccumPoints, Points).
 
