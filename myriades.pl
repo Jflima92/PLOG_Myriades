@@ -16,6 +16,19 @@ emptyBoard([[0,0,0,0,0,0,0,0,0,0],
 [0,0,0,0,0,0,0,0,0,0],
 [0,0,0,0,0,0,0,0,0,0]]).
 
+boardFinal([
+[0,300,300,300,212,300,221,300,300,300],
+[300,300,300,112,300,204,300,300,300,300],
+[300,300,300,300,300,300,300,300,300,300],
+[300,125,300,300,300,300,300,300,300,300],
+[300,232,300,300,300,300,233,300,110,300],
+[300,300,300,300,300,300,300,300,300,300],
+[300,300,300,300,300,300,300,300,300,300],
+[300,300,300,300,300,300,300,300,300,300],
+[300,300,300,300,300,300,300,300,300,300],
+[300,300,300,300,300,300,300,300,300,300]
+           ]).
+
 
 testBoard([[145,0,300,0,0,0,0,0,0,0],
 [0,0,0,0,0,0,0,0,0,0],
@@ -59,7 +72,7 @@ print('         Myriades').
 
 start:-
         
-         emptyBoard(Board),
+         boardFinal(Board),
          startmenu(Board).
 
 startmenu(Board) :-
@@ -111,10 +124,16 @@ splitValue(Value, User, Pval):-
 
 rejoinValue(Value, User, Pval):-
         User1 is User*100,
+        Pval < 10,
+        Value is User1+Pval*10.
+        
+
+rejoinValue(Value, User, Pval):-
+        User1 is User*100,
         Value is User1+Pval.
 
 checkValue(300, User, Pval):-
-        User is 30,
+        User is 3,
         Pval is 00.
 
 checkValue(Value, User, Pval):-
@@ -150,6 +169,23 @@ printLine([0|Resto]):-
         print(' '),
         print('|'),
         print('   '),
+        printLine(Resto).
+
+printLine([P1|Resto]):-      %%Value < 10
+        checkValue(P1, User, Value),
+        Value < 10,
+        NewUser is User * 10,
+        print(' '),
+        print('|'),
+        print(NewUser),
+        print(Value),
+        printLine(Resto).
+
+printLine([300|Resto]):-
+        %%checkValue(P1, User, Value),
+        print(' '),
+        print('|'),
+        print(300),
         printLine(Resto).
 
 printLine([P1|Resto]):-
@@ -495,7 +531,7 @@ makeChangesForEachEnemyValueLessThan(Count, Player, Board, BoardOut):-
 %%%%%%%%%%Check if pos empty
 
 isPosEmpty(Board, Player, Piece, X, Y, 2):- 
-        trace,
+        
         getPieceByPos(Board, X, Y, Val),
         \+checkRightPlayer(0, Val),
         print('You cant place a piece there!'),nl,nl,
@@ -546,18 +582,40 @@ startGame(Board):-
 
 
 getPlayerPoints(Board, Player, _, Points):-
-        searchBoardForPlayerPieces(Board, 1, 1, Player, 0, Points).        
+        searchBoardForPlayerPieces(Board, 1, 1, Player, 0, Points).  
+     
+playerWin(Points1, Points2, Winner):-
+        Points1 > Points2,
+        Winner is 2.
 
+playerWin(Points1, Points2, Winner):-
+        Points1 < Points2,
+        Winner is 1.
 
-getPoints(Board, _, 1):-                                     %%Menu final com pontuações inacabado
-        nl,nl,nl,
-        getPlayerPoints(Board, 1, _,  Points1),
-        getPlayerPoints(Board, 2, _,  Points2),
-        print('End Of Game!!!'),nl,
+getDif(Winner, Points1, Points2, Dif):-
+        Winner == 1, 
+        Dif is Points2 - Points1.
+
+getDif(Winner, Points1, Points2, Dif):-
+        Winner == 2, 
+        Dif is Points1 - Points2.      
+         
+
+getFinal(_, _, 0).
+getFinal(Board, _, 1):-                                     %%Menu final com pontuações inacabado
+        nl,nl,nl,nl,nl,nl,nl,
+        print('End Of Game!!!'),nl,nl,
+        getPlayerPoints(Board, 1, _, Points1),
+        getPlayerPoints(Board, 2, _, Points2),
         print('Player 1, you scored : '), print(Points1), print(' points!!'),nl,
         print('Player 2, you scored : '), print(Points2), print(' points!!'),nl,
         nl,
-        print('We hope you enjoyed, come back soon!!'),nl,nl.
+        playerWin(Points1, Points2, Winner),
+        getDif(Winner, Points1, Points2, Dif),
+        print('The Player '), print(Winner), print(' has won!! With less '), print(Dif), print(' points!! Congratulations!'),nl,nl,       
+        
+        print('We hope you enjoyed, come back soon!!'),nl,nl,
+        abort.
  
 aquelaJogada(Board, Player):-   
         nl,nl,     
@@ -592,6 +650,8 @@ play(1, Board, Player):-
         assert(player(Player, PiecesOut)),
         rejoinValue(InsValue,Player, Val),
         insertPiece(Board, BoardOut, X, Y, InsValue),nl,
+        hasGameEnded(BoardOut, Conf),
+        getFinal(BoardOut, _, Conf),
         nl,
         print('Current Board: '),nl,nl,              
         printScenario(BoardOut),nl,nl,
@@ -626,7 +686,8 @@ play(2, Board, Player, Piece):-
         checkPieceNearbyForEnemys(Piece, Board1, BoardOut, NewCount),nl,nl,
         print('Current Board: '),nl,nl,              
         printScenario(BoardOut),nl, nl,
-        %%hasGameEnded(BoardOut, Conf),
+        hasGameEnded(BoardOut, Conf),
+        print(Conf),
         
         print('Your turn has finished.'),
         
@@ -695,30 +756,62 @@ hasGameEnded(Board, HasIt):-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%% Sum calculation of player points
+sumPoints([], Points, Points).
+sumPoints([Elem|Rest], Accum, Points):-
+        splitValue(Elem, _, Val),
+        Points is Accum+Val,
+        sumPoints(Rest, Points, Accum).
+        
+existsInBoard(Board, Val):-
+        searchBoardForEmpty(Board, 0, Val).
 
-checkRightPlayer(Player, Player).
+getPoints(Board, Player, Points):-
+        findall(existsInBoard(Board,X), checkRightPlayer(Player, X), Pieces),
+        sumPoints(Pieces, 0, Points).       
+checkRight(Player,Player).
+checkRightPlayer(Value, Value1):-        
+        splitValue(Value, Player, _),
+        splitValue(Value1, Player1, _),
+        boardMakeEqual(Player, Player1).
 
-searchLine1(_, [_|_], 10, 10, _, _, _).              
+%%%searchLine1(Val, [_|_], 10, 10, Player, _, Points):-
+%        print(Points),nl,
+%        
+%        splitValue(Val, Player1, Pval),
+%        checkRight(Player, Player1),
+%        Points is Points+Pval.         
  
+searchLine1([], RestB,  Y, 11, Player, AccumPoints, Points):-
+        
+        NewY is Y+1,
+        searchBoardForPlayerPieces(RestB, 1, NewY, Player, AccumPoints, Points).
 
-searchLine1([Val|Rest],  Y, X, Player, AccumPoints, Points):-
-        X < 11,
+searchLine1([], [],  10, 11, Player, Points, Points).
+
+searchLine1([Val|Rest], RestB, Y, X, Player, AccumPoints, Points):-
+        
         NewX is X+1,
         splitValue(Val, Player1, Pval),
-        checkRightPlayer(Player, Player1),
-        Points is AccumPoints+Pval,
-        searchLine(Rest, Y, NewX, Player, Points, AccumPoints).  
+        checkRight(Player, Player1),  
+        NewAccum is AccumPoints+Pval,
+        searchLine1(Rest, RestB, Y, NewX, Player, NewAccum, Points).  
 
-searchLine1([_|Rest],  Y, X, Player, AccumPoints, Points):-
-        X < 11,
+searchLine1([_|Rest], RestB, Y, X, Player, AccumPoints, Points):-
+        
         NewX is X+1,
-        searchLine(Rest, Y, NewX, Player, Points, AccumPoints).
+        searchLine1(Rest, RestB, Y, NewX, Player, AccumPoints, Points).
 
-searchBoardForPlayerPieces([Line|_], X, Y, Player, AccumPoints, Points):-
-        searchLine1(Line, Line, Y, X, Player, AccumPoints, Points).
+searchLine1([_|Rest], RestB,  Y, X, Player, AccumPoints, Points):-
+        
+        NewX is X+1,
+        searchLine1(Rest, RestB, Y, NewX, Player, AccumPoints, Points).
+
+
+searchBoardForPlayerPieces([Line|RestB], X, Y, Player, AccumPoints, Points):-
+        searchLine1(Line, RestB, Y, X, Player, AccumPoints, Points).
         
 searchBoardForPlayerPieces([_|Rest], X, Y, Player, AccumPoints, Points):-
-        Y < 10,
+        
         NewY is Y+1,
         searchBoardForPlayerPieces(Rest, X, NewY, Player, AccumPoints, Points).
 
