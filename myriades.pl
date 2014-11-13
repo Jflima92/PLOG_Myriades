@@ -16,7 +16,7 @@ emptyBoard([[0,0,0,0,0,0,0,0,0,0],
 [0,0,0,0,0,0,0,0,0,0],
 [0,0,0,0,0,0,0,0,0,0]]).
 
-boardFinal([
+finalBoard([
 [0,300,300,300,212,300,221,300,300,300],
 [300,300,300,112,300,204,300,300,300,300],
 [300,300,300,300,300,300,300,300,300,300],
@@ -30,16 +30,16 @@ boardFinal([
            ]).
 
 
-testBoard([[145,0,300,0,0,0,0,0,0,0],
-[0,0,0,0,0,0,0,0,0,0],
+testBoard([[0,0,300,0,0,0,0,0,0,0],
+[0,209,0,0,0,0,0,0,0,0],
 [0,0,300,0,0,0,0,0,0,0],
-[0,0,0,0,0,123,0,0,0,0],
-[0,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,123,0,243,0,0],
+[0,0,0,0,0,0,0,300,0,0],
 [0,125,212,0,0,0,0,0,0,0],
 [0,232,0,0,0,0,300,0,0,0],
-[0,0,0,0,0,0,0,125,0,0],
+[0,0,0,0,0,0,0,149,0,0],
 [0,0,300,0,0,0,0,0,0,0],
-[0,0,0,0,0,0,0,0,0,0]]).
+[0,0,300,0,0,0,0,300,0,0]]).
 
 
 initialPieces([[1,2,3,4,5,6,7,8,9],
@@ -72,7 +72,7 @@ print('         Myriades').
 
 start:-
         
-         boardFinal(Board),
+         finalBoard(Board),
          startmenu(Board).
 
 startmenu(Board) :-
@@ -393,6 +393,10 @@ checkIfEnemy(Player, Player1, Value, Value1, 1):-
 
 checkIfEnemy(Player, Player1, Value, Value1, 0):-
         isEnemy(Player, Player1, Value, Value1).
+
+checkIfEnemy(Player, 3, Value, Value1, 1).
+
+checkIfEnemy(Player, 30, Value, Value1, 1).
                 
 
 compareValues(Value, Value1):-
@@ -530,22 +534,24 @@ makeChangesForEachEnemyValueLessThan(Count, Player, Board, BoardOut):-
 
 %%%%%%%%%%Check if pos empty
 
+isPosEmpty(Board, _, _, X, Y, _):- 
+        getPieceByPos(Board, X, Y, Val),
+        checkRight(0, Val).
+
 isPosEmpty(Board, Player, Piece, X, Y, 2):- 
         
         getPieceByPos(Board, X, Y, Val),
-        \+checkRightPlayer(0, Val),
+        \+checkRight(0, Val),
         print('You cant place a piece there!'),nl,nl,
         checkNextOption(1, Board, Player, Piece).
 
-isPosEmpty(Board, Player, X, Y, 1):- 
+isPosEmpty(Board, Player, _, X, Y, 1):- 
         getPieceByPos(Board, X, Y, Val),
-        \+checkRightPlayer(0, Val),
+        \+checkRight(0, Val),
         print('You cant place a piece there!'),nl,
         play(1, Board, Player).
                            
-isPosEmpty(Board, _, X, Y, _):- 
-        getPieceByPos(Board, X, Y, Val),
-        checkRightPlayer(0, Val).
+
         
 
 %%%%%%%%%%% Some Test Predicates
@@ -645,7 +651,7 @@ play(1, Board, Player):-
         player(Player, Pieces),
         getPiecePosInPieces(Val, Pieces, Xp, Yp),
         insertPiece(Pieces, PiecesOut, Xp, Yp, -1),
-        isPosEmpty(Board, Player, X, Y, 1),
+        isPosEmpty(Board, Player, _, X, Y, 1),
         retract(player(Player, Pieces)),
         assert(player(Player, PiecesOut)),
         rejoinValue(InsValue,Player, Val),
@@ -687,8 +693,8 @@ play(2, Board, Player, Piece):-
         print('Current Board: '),nl,nl,              
         printScenario(BoardOut),nl, nl,
         hasGameEnded(BoardOut, Conf),
-        print(Conf),
-        
+        getFinal(BoardOut, _, Conf),
+        nl,        
         print('Your turn has finished.'),
         
         checkPlayer(Player, Next),
@@ -767,8 +773,10 @@ existsInBoard(Board, Val):-
 
 getPoints(Board, Player, Points):-
         findall(existsInBoard(Board,X), checkRightPlayer(Player, X), Pieces),
-        sumPoints(Pieces, 0, Points).       
+        sumPoints(Pieces, 0, Points).  
+     
 checkRight(Player,Player).
+
 checkRightPlayer(Value, Value1):-        
         splitValue(Value, Player, _),
         splitValue(Value1, Player1, _),
@@ -786,7 +794,7 @@ searchLine1([], RestB,  Y, 11, Player, AccumPoints, Points):-
         NewY is Y+1,
         searchBoardForPlayerPieces(RestB, 1, NewY, Player, AccumPoints, Points).
 
-searchLine1([], [],  10, 11, Player, Points, Points).
+searchLine1([], [],  10, 11, _, Points, Points).
 
 searchLine1([Val|Rest], RestB, Y, X, Player, AccumPoints, Points):-
         
